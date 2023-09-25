@@ -1,0 +1,68 @@
+scala.reflect.internal.Types$TypeError: illegal cyclic inheritance involving trait BuiltInComponents
+occurred in the presentation compiler.
+
+action parameters:
+offset: 1446
+uri: file://<WORKSPACE>/app/controllers/CommentController.scala
+text:
+package controllers
+
+import javax.inject._
+import play.api._
+import play.api.mvc._
+import models.domain._
+import models.repo._
+import models.queries._
+import scala.concurrent.ExecutionContext
+import play.api.i18n.I18nSupport
+import play.api.libs.Files._
+import scala.concurrent.Future
+import play.api.data._
+import play.api.data.Forms._
+import java.nio.file.Files
+import java.util.UUID
+import java.nio.file.Paths
+
+/** This controller creates an `Action` to handle HTTP requests to the
+  * application's home page.
+  */
+@Singleton
+class CommentController @Inject() (
+    val controllerComponents: ControllerComponents,
+    implicit val ec: ExecutionContext,
+    photoRepo: PhotoRepo,
+    commentRepo: CommentRepo,
+    queries: Queries
+) extends BaseController
+    with I18nSupport {
+        
+        val commentForm = Form(
+            mapping(
+                "id" -> ignored(UUID.randomUUID()),
+                "imageID" -> ignored(UUID.randomUUID()),
+                "comment" -> nonEmptyText
+            )(Comment.apply)(Comment.unapply)
+        )
+
+        //def index() 
+
+        //create comment
+        def create() = Action.async { implicit request =>
+            commentForm.bindFromRequest().fold(
+                formWithErrors => {
+                    Future.successful(BadRequest)
+                },
+                comment => {
+                    commentRepo.createCommentSchema
+                    queries.addComment(comment.copy(i@@)).map { _ => Ok}
+                }
+            )
+        }
+
+
+
+    }
+
+
+error stacktrace:
+

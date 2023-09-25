@@ -1,0 +1,21 @@
+scala.reflect.internal.Types$TypeError: illegal cyclic inheritance involving trait CharSequence
+occurred in the presentation compiler.
+
+action parameters:
+offset: 239
+uri: file://<WORKSPACE>/app/models/domain/Comments.scala
+text:
+package models.domain
+
+import java.util.UUID
+
+case class Comment(id: UUID, comment: String)
+
+object Comment {
+    val tupled = (apply: (UUID, String) => Comment).tupled
+    def apply(comment: String): Comment = apply(UUID.randomUUID(), com@@)
+}
+
+
+error stacktrace:
+

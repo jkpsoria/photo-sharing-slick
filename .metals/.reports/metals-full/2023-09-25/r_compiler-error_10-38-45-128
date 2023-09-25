@@ -1,0 +1,123 @@
+java.lang.UnsupportedOperationException: Position.start on NoPosition
+occurred in the presentation compiler.
+
+action parameters:
+uri: file://<WORKSPACE>/app/controllers/HomeController.scala
+text:
+package controllers
+
+import javax.inject._
+import play.api._
+import play.api.mvc._
+import models.domain._
+import models.repo._
+import models.queries._
+import scala.concurrent.ExecutionContext
+import play.api.i18n.I18nSupport
+import play.api.libs.Files._
+import scala.concurrent.Future
+import play.api.data._
+import play.api.data.Forms._
+import java.nio.file.Files
+import java.util.UUID
+
+/**
+ * This controller creates an `Action` to handle HTTP requests to the
+ * application's home page.
+ */
+@Singleton
+class HomeController @Inject()(val controllerComponents: ControllerComponents, implicit val ec: ExecutionContext, photoRepo: PhotoRepo, queries: Queries) extends BaseController  with I18nSupport{
+
+  /**
+   * Create an Action to render an HTML page.
+   *
+   * The configuration in the `routes` file means that this method
+   * will be called when the application receives a `GET` request with
+   * a path of `/`.
+   */
+
+  val photoForm = Form (
+    mapping(
+      "id" -> ignored(UUID.randomUUID()),
+      "image" -> ignored(text),
+      "title" -> nonEmptyText
+    )(Photo.apply)(Photo.unapply)
+  )
+
+  def index() = Action.async { implicit request: Request[AnyContent] =>
+    photoRepo.createTaskSchema.map(_ => Ok(views.html.index()))
+  }
+
+  def upload() = Action.async(parse.multipartFormData) { request =>
+    photoForm.bindFromRequest().fold(
+      for
+    )
+    request.body.file("image").map { image =>
+        val fileContent = Files.readAllBytes(image.ref.path)
+        // Save the file content to the database using Slick
+        // Example: db.run(Images += Image(fileContent))
+        queries.addPhoto(Photo(UUID.randomUUID(), fileContent, image.filename))
+        Future.successful(Ok("File uploaded"))
+    }.getOrElse {
+        Future.successful(BadRequest("Missing file"))
+    }
+  }
+
+      def download() = Action.async { request =>
+        // Retrieve the file content from the database using Slick
+        // Example: val fileContent = db.run(Images.filter(_.id === id).map(_.content).result.headOption)
+        // Set appropriate content-type and headers
+        // Example: Ok(fileContent.getOrElse(Array[Byte]())).as("image/jpeg")
+    }
+}
+
+
+
+error stacktrace:
+scala.reflect.internal.util.Position.fail(Position.scala:24)
+	scala.reflect.internal.util.UndefinedPosition.start(Position.scala:101)
+	scala.reflect.internal.util.UndefinedPosition.start(Position.scala:97)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$4(PcCollector.scala:351)
+	scala.collection.immutable.List.flatMap(List.scala:293)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:350)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$19(PcCollector.scala:469)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:469)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$5(PcCollector.scala:363)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:363)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$3(PcCollector.scala:342)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:342)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$19(PcCollector.scala:469)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:469)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$3(PcCollector.scala:342)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:342)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$1(PcCollector.scala:288)
+	scala.meta.internal.pc.PcCollector.$anonfun$traverseSought$3(PcCollector.scala:342)
+	scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:183)
+	scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:179)
+	scala.collection.immutable.List.foldLeft(List.scala:79)
+	scala.meta.internal.pc.PcCollector.traverseWithParent$1(PcCollector.scala:342)
+	scala.meta.internal.pc.PcCollector.traverseSought(PcCollector.scala:472)
+	scala.meta.internal.pc.PcCollector.resultAllOccurences(PcCollector.scala:276)
+	scala.meta.internal.pc.PcCollector.result(PcCollector.scala:208)
+	scala.meta.internal.pc.PcSemanticTokensProvider.provide(PcSemanticTokensProvider.scala:71)
+	scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$semanticTokens$1(ScalaPresentationCompiler.scala:151)
