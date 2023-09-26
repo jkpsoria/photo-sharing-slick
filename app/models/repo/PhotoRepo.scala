@@ -20,6 +20,7 @@ final class PhotoRepo @Inject()(protected val dbConfigProvider: DatabaseConfigPr
       def title = column[String]("IMAGE_TITLE")
       def extension = column[String]("IMAGE_EXTENSION")
       def * = (id, image, title, extension).mapTo[Photo]
+      
     }
 
 

@@ -2,9 +2,9 @@ package models.domain
 
 import java.util.UUID
 
-case class Comment(id: UUID, imageID: UUID, comment: String)
+case class Comment(id: UUID, comment: String, imageID: UUID)
 
 object Comment {
-    val tupled = (apply: (UUID, UUID, String) => Comment).tupled
-    def apply(imageID: UUID, comment: String ): Comment = apply(UUID.randomUUID(), imageID, comment)
+    val tupled = (apply: (UUID, String, UUID) => Comment).tupled
+    def apply(comment: String, imageID: UUID): Comment = apply(UUID.randomUUID(), comment, imageID)
 }

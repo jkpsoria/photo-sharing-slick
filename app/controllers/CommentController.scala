@@ -32,8 +32,8 @@ class CommentController @Inject() (
         val commentForm = Form(
             mapping(
                 "id" -> ignored(UUID.randomUUID()),
+                "comment" -> nonEmptyText,
                 "imageID" -> ignored(UUID.randomUUID()),
-                "comment" -> nonEmptyText
             )(Comment.apply)(Comment.unapply)
         )
 
@@ -49,14 +49,12 @@ class CommentController @Inject() (
         def create(id: UUID) = Action.async { implicit request =>
             commentForm.bindFromRequest().fold(
                 formWithErrors => {
-                    Future.successful(BadRequest)
+                    Future.successful(BadRequest("Something went wrong"))
                 },
-                comment => {
-                    queries.addComment(Comment(UUID.randomUUID(), id, comment.comment)).map(_ => Ok)
+                comments => {
+                    queries.addComment(comments.copy(imageID = id, id = UUID.randomUUID())).map(_ => Redirect(routes.PhotoController.index()))
                 }
             )
         }
-
-
 
     }

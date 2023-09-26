@@ -15,12 +15,12 @@ final class CommentRepo @Inject()(protected val dbConfigProvider: DatabaseConfig
     import profile.api._
 
     protected class CommentTable (tag: Tag) extends Table[Comment](tag, "COMMENTS") {
-      def id = column[UUID]("ID", O.PrimaryKey)
-      def imageID = column[UUID]("IMAGE_ID")
-      def comment = column[String]("IMAGE_COMMENT")
-      def * = (id, imageID, comment).mapTo[Comment]
+        def id = column[UUID]("ID", O.PrimaryKey)
+        def comment = column[String]("IMAGE_COMMENT")
+        def imageID = column[UUID]("IMAGE_ID")
+        def * = (id, comment, imageID).mapTo[Comment]
 
-      def fkey = foreignKey("FK_IMAGE_ID", imageID, photoRepo.photos)(_.id, onDelete = ForeignKeyAction.Cascade)
+        def fkey = foreignKey("FK_IMAGE_ID", imageID, photoRepo.photos)(_.id, onDelete = ForeignKeyAction.Cascade)
     }
 
 

@@ -25,7 +25,8 @@ class PhotoController @Inject() (
     implicit val ec: ExecutionContext,
     photoRepo: PhotoRepo,
     commentRepo: CommentRepo,
-    queries: Queries
+    queries: Queries,
+    commentController: CommentController
 ) extends BaseController
     with I18nSupport {
 
@@ -47,53 +48,69 @@ class PhotoController @Inject() (
   // def index() = Action.async { implicit request: Request[AnyContent] =>
   //   photoRepo.createTaskSchema.map(photos => Ok(views.html.index(photos, photoForm)))
   // }
+  //   val commentForm = Form(
+  //     mapping(
+  //         "id" -> ignored(UUID.randomUUID()),
+  //         "comment" -> nonEmptyText,
+  //         "imageID" -> ignored(UUID.randomUUID()),
+  //     )(Comment.apply)(Comment.unapply)
+  // )
 
   def index() = Action.async { implicit request =>
-    photoRepo.createTaskSchema.flatMap { _ =>
-      commentRepo.createCommentSchema
-      queries.getPhotos.map { photos =>
-        Ok(views.html.index(photos, photoForm))  
-      }
-    }
+    for {
+      _ <- photoRepo.createTaskSchema
+      _ <- commentRepo.createCommentSchema
+      photos <- queries.getPhotos
+      comments <- queries.getComments
+    } yield Ok(
+      views.html
+        .index(photos, photoForm, comments, commentController.commentForm)
+    )
   }
 
   //   def index() = Action.async { implicit request =>
-    
+
   //   photoRepo.createTaskSchema.flatMap{ _ =>
   //     commentRepo.createCommentSchema
   //   }.map(_ => Ok)
   // }
 
   def upload() = Action.async(parse.multipartFormData) { implicit request =>
-    photoForm.bindFromRequest().fold(
-      formWithErrors => {
-        Future.successful(BadRequest)
-      },
-      photo => {
-        request.body
-        .file("picture")
-        .map {
-          picture => 
-            val filename = Files.readAllBytes(picture.ref)
-            val extension = picture.filename.split("\\.+").toList.last
-            val tempPhoto = Photo(UUID.randomUUID(), filename, photo.title, extension)
-            queries.addPhoto(tempPhoto).flatMap { _ =>
-              queries.getPhotos.map(response => Redirect(routes.PhotoController.index()))
-          }
-        }.getOrElse {
-          photoRepo.createTaskSchema.map(_ => Redirect(routes.PhotoController.index()))
+    photoForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          Future.successful(BadRequest)
+        },
+        photo => {
+          request.body
+            .file("picture")
+            .map { picture =>
+              val filename = Files.readAllBytes(picture.ref)
+              val extension = picture.filename.split("\\.+").toList.last
+              val tempPhoto =
+                Photo(UUID.randomUUID(), filename, photo.title, extension)
+              queries.addPhoto(tempPhoto).flatMap { _ =>
+                queries.getPhotos
+                  .map(response => Redirect(routes.PhotoController.index()))
+              }
+            }
+            .getOrElse {
+              photoRepo.createTaskSchema
+                .map(_ => Redirect(routes.PhotoController.index()))
+            }
         }
-      }
-    )
+      )
   }
 
   def showByID(id: UUID) = Action.async { implicit request =>
-    queries.getPhotoByID(id).map(photo => 
-      Ok(photo.image).as(s"image/${photo.extension}")
-    )
+    queries
+      .getPhotoByID(id)
+      .map(photo => Ok(photo.image).as(s"image/${photo.extension}"))
   }
 
-  def show() = Action.async{ implicit request =>
-    queries.getPhotos.map(photos => Ok(photos.mkString("\n")))  
+  def show() = Action.async { implicit request =>
+    queries.getPhotos.map(photos => Ok(photos.mkString("\n")))
   }
+
 }
